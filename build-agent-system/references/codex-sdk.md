@@ -56,9 +56,31 @@ const data = JSON.parse(turn.finalResponse);
 const threadId = thread.id;
 ```
 
+### 图像输入
+
+当需要把图像一并交给 Codex 时，`thread.run()` 不再传单个字符串，而是传结构化输入数组。文本项会拼接成 prompt，图像项使用本地文件路径传入。
+
+```typescript
+const turn = await thread.run([
+  { type: "text", text: "描述这两张截图中的问题，并给出修复建议" },
+  { type: "local_image", path: "./screenshots/error-state.png" },
+  { type: "local_image", path: "./screenshots/mobile-layout.jpg" },
+]);
+
+console.log(turn.finalResponse);
+```
+
+图像输入要点：
+- 图像项格式为 `{ type: "local_image", path: "..." }`
+- 可以在一次 `run()` 中混合传入多段文本和多张图像
+- `path` 使用当前工作目录下的相对路径或绝对路径
+- `runStreamed()` 的输入格式与 `run()` 相同
+
+如果图像来源是 URL，先下载到本地文件，再按 `local_image` 方式传入。
+
 ## Profile 配置
 
-在 `~/.codex/config.toml` 中定义配置档：
+在 `~/.codex/config.toml` 中定义配置档，example如下：
 
 ```toml
 [profiles.reviewer]

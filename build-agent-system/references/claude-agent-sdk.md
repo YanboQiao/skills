@@ -76,7 +76,7 @@ async for message in query(
 
 | 选项 | 类型 | 说明 |
 |------|------|------|
-| `prompt` | `string` | 任务描述 |
+| `prompt` | `string \| AsyncIterable<SDKUserMessage>` | 任务描述，支持文本或多模态消息流 |
 | `model` | `string` | 模型：opus / sonnet / haiku |
 | `systemPrompt` | `string` | 系统提示词 |
 | `cwd` | `string` | 工作目录 |
@@ -91,6 +91,107 @@ async for message in query(
 | `continue` | `boolean` | 继续最近的会话 |
 | `resume` | `string` | 通过 session ID 恢复指定会话 |
 | `forkSession` | `boolean` | 从已有会话分叉 |
+
+---
+
+## 图像输入
+
+`prompt` 除了接受字符串，还支持 `AsyncIterable<SDKUserMessage>`，可传入包含图像的多模态消息。
+
+### SDKUserMessage 结构
+
+```typescript
+type SDKUserMessage = {
+  type: "user";
+  message: MessageParam;          // { role: "user", content: string | ContentBlockParam[] }
+  parent_tool_use_id: string | null;
+};
+```
+
+`message.content` 数组中可混合 `ImageBlockParam` 和 `TextBlockParam`：
+
+```typescript
+// 图像内容块
+interface ImageBlockParam {
+  type: "image";
+  source: Base64ImageSource | URLImageSource;
+}
+
+interface Base64ImageSource {
+  type: "base64";
+  media_type: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+  data: string;  // base64 编码
+}
+
+interface URLImageSource {
+  type: "url";
+  url: string;
+}
+```
+
+### 示例
+
+```typescript
+import { query } from "@anthropic-ai/claude-agent-sdk";
+import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
+import fs from "fs";
+
+const imageData = fs.readFileSync("/path/to/image.png").toString("base64");
+
+async function* imagePrompt(): AsyncGenerator<SDKUserMessage> {
+  yield {
+    type: "user",
+    message: {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/png",
+            data: imageData,
+          },
+        },
+        {
+          type: "text",
+          text: "请描述这张图片中的内容",
+        },
+      ],
+    },
+    parent_tool_use_id: null,
+  };
+}
+
+for await (const msg of query({
+  prompt: imagePrompt(),
+  options: { model: "sonnet", maxTurns: 1 },
+})) {
+  if (msg.type === "result") {
+    console.log(msg.result);
+  }
+}
+```
+
+URL 方式更简洁，直接引用在线图片：
+
+```typescript
+content: [
+  {
+    type: "image",
+    source: { type: "url", url: "https://example.com/photo.jpg" },
+  },
+  { type: "text", text: "分析这张图片" },
+]
+```
+
+### 格式与限制
+
+| 项目 | 限制 |
+|------|------|
+| 支持格式 | JPEG、PNG、GIF、WebP |
+| 单张大小 | ≤ 5 MB |
+| 像素上限 | 8000 × 8000 px |
+| 建议尺寸 | 最长边 ≤ 1568 px，总像素 ≤ 1.15 百万 |
 
 ---
 

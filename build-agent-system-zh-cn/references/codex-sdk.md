@@ -1,68 +1,68 @@
 # Codex SDK Reference
 
-Codex SDK is OpenAI's SWE-agent SDK. It provides TypeScript methods for programmatic control of Codex agents.
+Codex SDK 是 OpenAI 推出的 swe-agent SDK，通过 TypeScript 调用 SDK 暴露的方法，用编程的方式操作 Codex。
 
-For the latest API documentation, use the `OpenAI Docs` skill to fetch official references.
+如需查阅最新 API 文档，请使用 `OpenAI Docs` 技能获取官方文档。
 
 ---
 
-## Installation
+## 安装
 
 ```bash
 npm install @openai/codex-sdk
 ```
 
-## Core API
+## 核心 API
 
-### Codex Instance
+### Codex 实例
 
 ```typescript
 import { Codex, Thread, ThreadOptions } from "@openai/codex-sdk";
 
 const codex = new Codex({
   config: {
-    profile: "my-profile",                    // references a profile in config.toml
+    profile: "my-profile",                    // 引用 config.toml 中的 profile
     developer_instructions: myInstruction,     // System Prompt
   },
 });
 ```
 
-### Thread Management
+### Thread 管理
 
 ```typescript
-// Create a new thread
+// 创建新 thread
 const threadOptions: ThreadOptions = {
   workingDirectory: "/path/to/repo",
-  skipGitRepoCheck: true,      // allow running in non-git repositories
+  skipGitRepoCheck: true,      // 允许在非 git 仓库中运行
 };
 const thread = codex.startThread(threadOptions);
 
-// Resume an existing thread (for continue scenarios)
+// 恢复已有 thread（用于 continue 场景）
 const thread = codex.resumeThread(threadId, threadOptions);
 ```
 
-### Execution and Output
+### 执行与输出
 
 ```typescript
-// Plain text output
+// 普通文本输出
 const turn = await thread.run(prompt);
-console.log(turn.finalResponse);   // text response
+console.log(turn.finalResponse);   // 文本响应
 
-// Structured output (SDK guarantees 100% parse success)
+// 结构化输出（SDK 保证 100% 解析成功）
 const turn = await thread.run(prompt, { outputSchema: mySchema });
 const data = JSON.parse(turn.finalResponse);
 
-// Get thread ID (for subsequent resume)
+// 获取 thread ID（用于后续 resume）
 const threadId = thread.id;
 ```
 
-### Image Input
+### 图像输入
 
-When passing images to Codex, `thread.run()` takes a structured input array instead of a single string. Text items are concatenated into the prompt, and image items use local file paths.
+当需要把图像一并交给 Codex 时，`thread.run()` 不再传单个字符串，而是传结构化输入数组。文本项会拼接成 prompt，图像项使用本地文件路径传入。
 
 ```typescript
 const turn = await thread.run([
-  { type: "text", text: "Describe the issues in these two screenshots and suggest fixes" },
+  { type: "text", text: "描述这两张截图中的问题，并给出修复建议" },
   { type: "local_image", path: "./screenshots/error-state.png" },
   { type: "local_image", path: "./screenshots/mobile-layout.jpg" },
 ]);
@@ -70,17 +70,17 @@ const turn = await thread.run([
 console.log(turn.finalResponse);
 ```
 
-Image input key points:
-- Image items use the format `{ type: "local_image", path: "..." }`
-- You can mix multiple text segments and multiple images in a single `run()` call
-- `path` uses a relative path from the current working directory or an absolute path
-- `runStreamed()` uses the same input format as `run()`
+图像输入要点：
+- 图像项格式为 `{ type: "local_image", path: "..." }`
+- 可以在一次 `run()` 中混合传入多段文本和多张图像
+- `path` 使用当前工作目录下的相对路径或绝对路径
+- `runStreamed()` 的输入格式与 `run()` 相同
 
-If the image source is a URL, download it to a local file first, then pass it as `local_image`.
+如果图像来源是 URL，先下载到本地文件，再按 `local_image` 方式传入。
 
-## Profile Configuration
+## Profile 配置
 
-Define configuration profiles in `~/.codex/config.toml`, example:
+在 `~/.codex/config.toml` 中定义配置档，example如下：
 
 ```toml
 [profiles.reviewer]
@@ -92,16 +92,16 @@ personality = "pragmatic"
 service_tier = "fast"
 ```
 
-| Field | Description |
-|-------|-------------|
-| `model` | Model to use |
-| `model_reasoning_effort` | Reasoning effort: low / medium / high / xhigh |
-| `approval_policy` | Tool call approval policy: never / always / auto |
-| `sandbox_mode` | Sandbox mode: sandbox / danger-full-access |
-| `personality` | Personality style |
-| `service_tier` | Service tier: fast / default |
+| 字段 | 说明 |
+|------|------|
+| `model` | 使用的模型 |
+| `model_reasoning_effort` | 推理强度：low / medium / high / xhigh |
+| `approval_policy` | 工具调用审批策略：never / always / auto |
+| `sandbox_mode` | 沙箱模式：sandbox / danger-full-access |
+| `personality` | 人格风格 |
+| `service_tier` | 服务层级：fast / default |
 
-## Agent Class Template
+## Agent Class 模板
 
 ```typescript
 import { Codex, Thread, ThreadOptions } from "@openai/codex-sdk";
@@ -171,12 +171,12 @@ export class MyAgent {
 }
 ```
 
-## Orchestration Notes
+## 编排说明
 
-For orchestration pattern design philosophy and selection guide, refer to the "How to Build Agent System" section in SKILL.md.
+编排模式的设计思想和选择指南请参见 SKILL.md 中的"多 Agent 编排"章节。
 
-Codex SDK orchestration key points:
-- **Context passing**: Pass serialized output between Agents via `JSON.stringify(result.data)` as the next Agent's prompt input
-- **Session resume**: In loop-with-checker scenarios, use `codex.resumeThread(threadId)` to maintain context, avoiding a fresh start
-- **Parallel execution**: Use `Promise.all` to invoke multiple Agent instances in parallel, each holding its own independent Thread
-- **LLM orchestration**: The Orchestrator Agent drives the scheduling loop via structured output (`{ nextAgent, prompt, done }`)
+Codex SDK 编排要点：
+- **Context 传递**：Agent 之间通过 `JSON.stringify(result.data)` 序列化输出，作为下一个 Agent 的 prompt 输入
+- **会话恢复**：循环校验场景下使用 `codex.resumeThread(threadId)` 保持上下文，避免从零开始
+- **并行执行**：使用 `Promise.all` 并行调用多个 Agent 实例，每个实例独立持有自己的 Thread
+- **LLM 编排**：Orchestrator Agent 通过结构化输出（`{ nextAgent, prompt, done }`）驱动调度循环

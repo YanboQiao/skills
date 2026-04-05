@@ -1,12 +1,12 @@
 # Claude Agent SDK Reference
 
-Claude Agent SDK（原 Claude Code SDK）是 Anthropic 推出的 Agent 开发 SDK，支持 TypeScript 和 Python。
+Claude Agent SDK (formerly Claude Code SDK) is Anthropic's Agent development SDK, with first-class support for both TypeScript and Python.
 
-如需查阅最新 API 文档，请使用对应技能获取官方文档。
+For the latest API documentation, use the `Anthropic Docs` skill to fetch official references.
 
 ---
 
-## 安装
+## Installation
 
 ```bash
 # TypeScript
@@ -16,29 +16,29 @@ npm install @anthropic-ai/claude-agent-sdk
 pip install claude-agent-sdk
 ```
 
-环境变量：`ANTHROPIC_API_KEY=your-api-key`
+Environment variable: `ANTHROPIC_API_KEY=your-api-key`
 
-替代 Provider：
-- Amazon Bedrock：`CLAUDE_CODE_USE_BEDROCK=1` + AWS 凭证
-- Google Vertex AI：`CLAUDE_CODE_USE_VERTEX=1` + GCP 凭证
+Alternative Providers:
+- Amazon Bedrock: `CLAUDE_CODE_USE_BEDROCK=1` + AWS credentials
+- Google Vertex AI: `CLAUDE_CODE_USE_VERTEX=1` + GCP credentials
 
 ---
 
-## 核心 API
+## Core API
 
 ### query()
 
-主入口函数，返回异步消息流：
+Main entry function, returns an async message stream:
 
-**TypeScript：**
+**TypeScript:**
 ```typescript
 import { query } from "@anthropic-ai/claude-agent-sdk";
 
 for await (const message of query({
-  prompt: "分析这个仓库的架构",
+  prompt: "Analyze the architecture of this repository",
   options: {
     model: "opus",
-    systemPrompt: "你是一个代码分析专家",
+    systemPrompt: "You are a code analysis expert",
     cwd: "/path/to/repo",
     permissionMode: "bypassPermissions",
     allowedTools: ["Read", "Glob", "Grep"],
@@ -53,15 +53,15 @@ for await (const message of query({
 }
 ```
 
-**Python：**
+**Python:**
 ```python
 from claude_agent_sdk import query, ClaudeAgentOptions
 
 async for message in query(
-    prompt="分析这个仓库的架构",
+    prompt="Analyze the architecture of this repository",
     options=ClaudeAgentOptions(
         model="opus",
-        system_prompt="你是一个代码分析专家",
+        system_prompt="You are a code analysis expert",
         cwd="/path/to/repo",
         permission_mode="bypassPermissions",
         allowed_tools=["Read", "Glob", "Grep"],
@@ -72,33 +72,33 @@ async for message in query(
         print(message.result)
 ```
 
-### 主要配置项
+### Main Configuration Options
 
-| 选项 | 类型 | 说明 |
-|------|------|------|
-| `prompt` | `string \| AsyncIterable<SDKUserMessage>` | 任务描述，支持文本或多模态消息流 |
-| `model` | `string` | 模型：opus / sonnet / haiku |
-| `systemPrompt` | `string` | 系统提示词 |
-| `cwd` | `string` | 工作目录 |
-| `allowedTools` | `string[]` | 允许使用的工具 |
-| `disallowedTools` | `string[]` | 禁止使用的工具 |
-| `permissionMode` | `string` | 权限模式 |
-| `maxTurns` | `number` | 最大迭代次数 |
-| `outputFormat` | `object` | 结构化输出 schema |
-| `mcpServers` | `object` | MCP 服务器配置 |
-| `agents` | `object` | 子 Agent 定义 |
-| `hooks` | `object` | 事件钩子 |
-| `continue` | `boolean` | 继续最近的会话 |
-| `resume` | `string` | 通过 session ID 恢复指定会话 |
-| `forkSession` | `boolean` | 从已有会话分叉 |
+| Option | Type | Description |
+|--------|------|-------------|
+| `prompt` | `string \| AsyncIterable<SDKUserMessage>` | Task description, supports text or multimodal message stream |
+| `model` | `string` | Model: opus / sonnet / haiku |
+| `systemPrompt` | `string` | System prompt |
+| `cwd` | `string` | Working directory |
+| `allowedTools` | `string[]` | Tools allowed to use |
+| `disallowedTools` | `string[]` | Tools not allowed to use |
+| `permissionMode` | `string` | Permission mode |
+| `maxTurns` | `number` | Maximum number of iterations |
+| `outputFormat` | `object` | Structured output schema |
+| `mcpServers` | `object` | MCP server configuration |
+| `agents` | `object` | Sub-Agent definitions |
+| `hooks` | `object` | Event hooks |
+| `continue` | `boolean` | Continue the most recent session |
+| `resume` | `string` | Resume a specific session by session ID |
+| `forkSession` | `boolean` | Fork from an existing session |
 
 ---
 
-## 图像输入
+## Image Input
 
-`prompt` 除了接受字符串，还支持 `AsyncIterable<SDKUserMessage>`，可传入包含图像的多模态消息。
+In addition to strings, `prompt` also supports `AsyncIterable<SDKUserMessage>`, allowing multimodal messages containing images.
 
-### SDKUserMessage 结构
+### SDKUserMessage Structure
 
 ```typescript
 type SDKUserMessage = {
@@ -108,10 +108,10 @@ type SDKUserMessage = {
 };
 ```
 
-`message.content` 数组中可混合 `ImageBlockParam` 和 `TextBlockParam`：
+`message.content` array can mix `ImageBlockParam` and `TextBlockParam`:
 
 ```typescript
-// 图像内容块
+// Image content block
 interface ImageBlockParam {
   type: "image";
   source: Base64ImageSource | URLImageSource;
@@ -120,7 +120,7 @@ interface ImageBlockParam {
 interface Base64ImageSource {
   type: "base64";
   media_type: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-  data: string;  // base64 编码
+  data: string;  // base64 encoded
 }
 
 interface URLImageSource {
@@ -129,7 +129,7 @@ interface URLImageSource {
 }
 ```
 
-### 示例
+### Example
 
 ```typescript
 import { query } from "@anthropic-ai/claude-agent-sdk";
@@ -154,7 +154,7 @@ async function* imagePrompt(): AsyncGenerator<SDKUserMessage> {
         },
         {
           type: "text",
-          text: "请描述这张图片中的内容",
+          text: "Describe the content in this image",
         },
       ],
     },
@@ -172,7 +172,7 @@ for await (const msg of query({
 }
 ```
 
-URL 方式更简洁，直接引用在线图片：
+The URL approach is more concise — reference online images directly:
 
 ```typescript
 content: [
@@ -180,54 +180,54 @@ content: [
     type: "image",
     source: { type: "url", url: "https://example.com/photo.jpg" },
   },
-  { type: "text", text: "分析这张图片" },
+  { type: "text", text: "Analyze this image" },
 ]
 ```
 
-### 格式与限制
+### Format and Limits
 
-| 项目 | 限制 |
-|------|------|
-| 支持格式 | JPEG、PNG、GIF、WebP |
-| 单张大小 | ≤ 5 MB |
-| 像素上限 | 8000 × 8000 px |
-| 建议尺寸 | 最长边 ≤ 1568 px，总像素 ≤ 1.15 百万 |
+| Item | Limit |
+|------|-------|
+| Supported formats | JPEG, PNG, GIF, WebP |
+| Max size per image | ≤ 5 MB |
+| Pixel limit | 8000 × 8000 px |
+| Recommended size | Longest side ≤ 1568 px, total pixels ≤ 1.15 million |
 
 ---
 
-## 会话管理
+## Session Management
 
 ```typescript
-// 获取 session ID
+// Get session ID
 let sessionId: string;
 for await (const msg of query({ prompt: "..." })) {
   if (msg.type === "result") sessionId = msg.session_id;
 }
 
-// 恢复指定会话（continue 场景）
+// Resume a specific session (continue scenario)
 for await (const msg of query({
-  prompt: "继续之前的工作",
+  prompt: "Continue the previous work",
   options: { resume: sessionId }
 })) { ... }
 
-// 继续最近的会话
+// Continue the most recent session
 for await (const msg of query({
-  prompt: "继续",
+  prompt: "Continue",
   options: { continue: true }
 })) { ... }
 
-// 分叉会话（从某个点创建分支）
+// Fork a session (create a branch from a point)
 for await (const msg of query({
-  prompt: "尝试另一种方案",
+  prompt: "Try a different approach",
   options: { resume: sessionId, forkSession: true }
 })) { ... }
 ```
 
 ---
 
-## 结构化输出
+## Structured Output
 
-**TypeScript（Zod）：**
+**TypeScript (Zod):**
 ```typescript
 import { z } from "zod";
 
@@ -241,7 +241,7 @@ const schema = z.object({
 });
 
 for await (const msg of query({
-  prompt: "审查这段代码",
+  prompt: "Review this code",
   options: {
     outputFormat: {
       type: "json_schema",
@@ -256,7 +256,7 @@ for await (const msg of query({
 }
 ```
 
-**Python（Pydantic）：**
+**Python (Pydantic):**
 ```python
 from pydantic import BaseModel
 
@@ -266,7 +266,7 @@ class ReviewOutput(BaseModel):
     passed: bool
 
 async for msg in query(
-    prompt="审查这段代码",
+    prompt="Review this code",
     options=ClaudeAgentOptions(
         output_format={
             "type": "json_schema",
@@ -280,57 +280,57 @@ async for msg in query(
 
 ---
 
-## 权限模式
+## Permission Modes
 
-| 模式 | 行为 |
-|------|------|
-| `"default"` | 未匹配的工具需要审批 |
-| `"acceptEdits"` | 自动批准文件编辑操作 |
-| `"bypassPermissions"` | 自动批准所有工具（谨慎使用） |
-| `"plan"` | 仅规划不执行 |
-| `"dontAsk"` | 仅允许 allowedTools 中的工具，其余拒绝 |
-
----
-
-## 内置工具
-
-| 工具 | 用途 |
-|------|------|
-| `Read` | 读取文件 |
-| `Write` | 创建文件 |
-| `Edit` | 编辑现有文件 |
-| `Bash` | 执行终端命令 |
-| `Glob` | 按模式搜索文件 |
-| `Grep` | 搜索文件内容 |
-| `WebSearch` | 网络搜索 |
-| `WebFetch` | 获取网页内容 |
-| `Agent` | 调用子 Agent |
-| `NotebookEdit` | 编辑 Jupyter 笔记本 |
+| Mode | Behavior |
+|------|----------|
+| `"default"` | Unmatched tools require approval |
+| `"acceptEdits"` | Auto-approve file edit operations |
+| `"bypassPermissions"` | Auto-approve all tools (use with caution) |
+| `"plan"` | Plan only, no execution |
+| `"dontAsk"` | Only allow tools in allowedTools, reject the rest |
 
 ---
 
-## Subagents（子 Agent）
+## Built-in Tools
 
-Claude Agent SDK 内置了子 Agent 机制，通过 `agents` 配置定义专门的子 Agent，由 Claude 自行决定何时调用。
+| Tool | Purpose |
+|------|---------|
+| `Read` | Read files |
+| `Write` | Create files |
+| `Edit` | Edit existing files |
+| `Bash` | Execute terminal commands |
+| `Glob` | Search files by pattern |
+| `Grep` | Search file contents |
+| `WebSearch` | Web search |
+| `WebFetch` | Fetch web page content |
+| `Agent` | Invoke sub-Agent |
+| `NotebookEdit` | Edit Jupyter notebooks |
+
+---
+
+## Subagents
+
+Claude Agent SDK has a built-in subagent mechanism. Define specialized sub-Agents through the `agents` configuration, and Claude will decide when to invoke them on its own.
 
 ```typescript
 for await (const msg of query({
-  prompt: "全面审查这个项目的代码质量",
+  prompt: "Comprehensively review this project's code quality",
   options: {
     allowedTools: ["Read", "Grep", "Glob", "Agent"],
     agents: {
       "security-reviewer": {
-        description: "安全审查专家，检查代码中的安全漏洞",
-        prompt: `你是安全审查专家，专注于：
-- SQL 注入、XSS 等 OWASP Top 10 漏洞
-- 敏感信息泄露
-- 权限校验缺失`,
+        description: "Security review expert, checks for security vulnerabilities in code",
+        prompt: `You are a security review expert, focusing on:
+- SQL injection, XSS, and other OWASP Top 10 vulnerabilities
+- Sensitive information leaks
+- Missing permission checks`,
         tools: ["Read", "Grep", "Glob"],
         model: "opus",
       },
       "perf-reviewer": {
-        description: "性能审查专家，识别性能瓶颈和优化机会",
-        prompt: "你是性能审查专家...",
+        description: "Performance review expert, identifies performance bottlenecks and optimization opportunities",
+        prompt: "You are a performance review expert...",
         tools: ["Read", "Grep", "Glob", "Bash"],
         model: "sonnet",
       },
@@ -339,26 +339,26 @@ for await (const msg of query({
 })) { ... }
 ```
 
-### AgentDefinition 字段
+### AgentDefinition Fields
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `description` | `string` | 是 | 描述该 Agent 的用途（Claude 据此决定是否调用） |
-| `prompt` | `string` | 是 | System Prompt |
-| `tools` | `string[]` | 否 | 允许使用的工具，未指定则继承全部 |
-| `model` | `string` | 否 | 模型覆盖：opus / sonnet / haiku / inherit |
-| `skills` | `string[]` | 否 | 可使用的 skill |
-| `mcpServers` | `array` | 否 | 可使用的 MCP 服务器 |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `description` | `string` | Yes | Describes the Agent's purpose (Claude uses this to decide whether to invoke it) |
+| `prompt` | `string` | Yes | System Prompt |
+| `tools` | `string[]` | No | Allowed tools; inherits all if unspecified |
+| `model` | `string` | No | Model override: opus / sonnet / haiku / inherit |
+| `skills` | `string[]` | No | Available skills |
+| `mcpServers` | `array` | No | Available MCP servers |
 
 ---
 
-## MCP 服务器
+## MCP Servers
 
-通过 MCP（Model Context Protocol）连接外部系统：
+Connect to external systems via MCP (Model Context Protocol):
 
 ```typescript
 for await (const msg of query({
-  prompt: "列出最近的 GitHub issues",
+  prompt: "List recent GitHub issues",
   options: {
     mcpServers: {
       github: {
@@ -367,23 +367,23 @@ for await (const msg of query({
         env: { GITHUB_TOKEN: process.env.GITHUB_TOKEN },
       }
     },
-    allowedTools: ["mcp__github__*"],  // 通配符授权
+    allowedTools: ["mcp__github__*"],  // wildcard authorization
   }
 })) { ... }
 ```
 
-工具命名规则：`mcp__{server_name}__{tool_name}`
+Tool naming convention: `mcp__{server_name}__{tool_name}`
 
-传输类型：
-| 类型 | 场景 | 配置 |
-|------|------|------|
-| stdio（默认） | 本地进程 | `{ command, args }` |
-| http | 云端 API | `{ type: "http", url }` |
-| sse | 流式端点 | `{ type: "sse", url }` |
+Transport types:
+| Type | Use Case | Configuration |
+|------|----------|---------------|
+| stdio (default) | Local process | `{ command, args }` |
+| http | Cloud API | `{ type: "http", url }` |
+| sse | Streaming endpoint | `{ type: "sse", url }` |
 
 ---
 
-## 自定义工具
+## Custom Tools
 
 ```typescript
 import { tool, createSdkMcpServer } from "@anthropic-ai/claude-agent-sdk";
@@ -391,16 +391,16 @@ import { z } from "zod";
 
 const getTemperature = tool(
   "get_temperature",
-  "获取指定位置的当前温度",
+  "Get the current temperature at a specified location",
   {
-    latitude: z.number().describe("纬度"),
-    longitude: z.number().describe("经度"),
+    latitude: z.number().describe("Latitude"),
+    longitude: z.number().describe("Longitude"),
   },
   async (args) => {
     const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${args.latitude}&longitude=${args.longitude}&current=temperature_2m`);
     const data = await resp.json();
     return {
-      content: [{ type: "text", text: `温度：${data.current.temperature_2m}°C` }],
+      content: [{ type: "text", text: `Temperature: ${data.current.temperature_2m}°C` }],
     };
   }
 );
@@ -414,19 +414,19 @@ const server = createSdkMcpServer({
 
 ---
 
-## Hooks（事件钩子）
+## Hooks (Event Hooks)
 
-在关键执行节点插入自定义逻辑：
+Insert custom logic at key execution points:
 
-| Hook | 触发时机 |
-|------|---------|
-| `PreToolUse` | 工具执行前（可拦截/修改） |
-| `PostToolUse` | 工具执行后 |
-| `Stop` | 执行停止时 |
-| `SubagentStart` | 子 Agent 启动 |
-| `SubagentStop` | 子 Agent 完成 |
+| Hook | Trigger Timing |
+|------|----------------|
+| `PreToolUse` | Before tool execution (can intercept/modify) |
+| `PostToolUse` | After tool execution |
+| `Stop` | When execution stops |
+| `SubagentStart` | When a sub-Agent starts |
+| `SubagentStop` | When a sub-Agent completes |
 
-示例：禁止修改 .env 文件：
+Example: Prevent modification of .env files:
 
 ```typescript
 const protectEnv = async (input, toolUseID, { signal }) => {
@@ -436,7 +436,7 @@ const protectEnv = async (input, toolUseID, { signal }) => {
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: "不允许修改 .env 文件",
+        permissionDecisionReason: "Modification of .env files is not allowed",
       }
     };
   }
@@ -455,33 +455,33 @@ for await (const msg of query({
 
 ---
 
-## 消息类型
+## Message Types
 
-`query()` 返回的消息流包含以下类型：
+The message stream returned by `query()` contains the following types:
 
-| 类型 | 说明 |
-|------|------|
-| `system` (subtype: `init`) | 会话初始化，包含 MCP 连接状态 |
-| `assistant` | Claude 的推理和工具调用 |
-| `tool_result` | 工具执行结果 |
-| `result` | 最终结果 |
+| Type | Description |
+|------|-------------|
+| `system` (subtype: `init`) | Session initialization, includes MCP connection status |
+| `assistant` | Claude's reasoning and tool calls |
+| `tool_result` | Tool execution results |
+| `result` | Final result |
 
-### Result 子类型
+### Result Subtypes
 
-| subtype | 含义 |
-|---------|------|
-| `success` | 任务完成 |
-| `error_during_execution` | 执行异常 |
-| `error_max_turns` | 达到迭代上限 |
-| `error_max_budget_usd` | 达到预算上限 |
-| `error_max_structured_output_retries` | 结构化输出解析失败 |
-| `error_interrupted` | 被用户取消或 hook 拦截 |
+| Subtype | Meaning |
+|---------|---------|
+| `success` | Task completed |
+| `error_during_execution` | Execution error |
+| `error_max_turns` | Reached iteration limit |
+| `error_max_budget_usd` | Reached budget limit |
+| `error_max_structured_output_retries` | Structured output parse failure |
+| `error_interrupted` | Cancelled by user or intercepted by hook |
 
 ---
 
-## Agent Class 模板
+## Agent Class Template
 
-基于 Claude Agent SDK 的 Agent 封装与 Codex SDK 的 Thread 模型不同，这里通过 session 管理实现 run/continue：
+Unlike Codex SDK's Thread model, Claude Agent SDK manages state through sessions. The run/continue pattern is implemented via session IDs:
 
 ```typescript
 import { query } from "@anthropic-ai/claude-agent-sdk";
@@ -554,12 +554,12 @@ export class MyAgent {
 }
 ```
 
-## 编排说明
+## Orchestration Notes
 
-编排模式的设计思想和选择指南请参见 SKILL.md 中的"多 Agent 编排"章节。
+For orchestration pattern design philosophy and selection guide, refer to the "How to Build Agent System" section in SKILL.md.
 
-Claude Agent SDK 编排要点：
-- **Context 传递**：与 Codex 相同，通过序列化输出传递给下一个 Agent 的 prompt
-- **会话恢复**：使用 `options.resume = sessionId` 恢复会话上下文；支持 `forkSession` 创建分支
-- **并行执行**：多个 `query()` 调用可并行运行，各自持有独立 session
-- **内置 subagent**：Claude Agent SDK 独有——通过 `agents` 配置声明子 Agent，Claude 自行决定何时调用，无需手动编写 Orchestrator 循环。适合动态决策场景
+Claude Agent SDK orchestration key points:
+- **Context passing**: Same as Codex — serialize output and pass it to the next Agent's prompt
+- **Session resume**: Use `options.resume = sessionId` to restore session context; supports `forkSession` for branching
+- **Parallel execution**: Multiple `query()` calls can run in parallel, each holding an independent session
+- **Built-in subagent**: Unique to Claude Agent SDK — declare sub-Agents through the `agents` configuration, and Claude decides when to invoke them, no need to manually write an Orchestrator loop. Ideal for dynamic decision scenarios
